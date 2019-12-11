@@ -272,7 +272,7 @@ class mark( object ):
 
 
         orig = addrstr
-        for reg in HARDWARE_REGISTERS:
+        for reg in HARDWARE_REGISTERS(self.__proj):
             # This is tooooo slow!
             #   orig = re.sub(r'%s_[0-9]+_64' % reg, '%s_64' % reg, orig)
 
@@ -324,14 +324,14 @@ class mark( object ):
         # Mapping Optimization
         self.__unique_derefs = { }                  # unique derefences
         self.__regex = { }
-        for reg in HARDWARE_REGISTERS:              # boost regex computations
+        for reg in HARDWARE_REGISTERS(project):              # boost regex computations
             self.__regex[reg] = re.compile(r'%s_[0-9]+_64' % reg)
 
 
         self.__rg = nx.Graph()
 
         self.__rg.add_nodes_from(['__r%d' % i for i in range(8)], bipartite=0)      
-        self.__rg.add_nodes_from(HARDWARE_REGISTERS, bipartite=1)
+        self.__rg.add_nodes_from(HARDWARE_REGISTERS(project), bipartite=1)
 
         # create a mapping between basic blocks (nodes) and their entry points (addresses)
         for node, _ in self.__cfg.graph.node.iteritems():

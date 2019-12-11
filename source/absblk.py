@@ -174,7 +174,7 @@ class abstract_ng( object ):
                 continue
 
             # get the last write only
-            if reg not in HARDWARE_REGISTERS or reg in visited:
+            if reg not in HARDWARE_REGISTERS(self.__proj) or reg in visited:
                 continue
 
             data = { }                              # various data related to the write
@@ -735,7 +735,7 @@ class abstract_ng( object ):
         # remember the "raw" value that is being written to the register
         self.__reg_rawval[ reg ] = state.inspect.reg_write_expr
 
-        if reg not in HARDWARE_REGISTERS:           # we only care about specific registers
+        if reg not in HARDWARE_REGISTERS(self.__proj):           # we only care about specific registers
             self.__callback_mutex = 0               # release lock
             return        
 
@@ -922,64 +922,106 @@ class abstract_ng( object ):
             simuvex.o.TRACK_CONSTRAINT_ACTIONS }
         )
 
-      
-        # ---------------------------------------------------------------------
-        # initialize all registers with a symbolic variable
-        # ---------------------------------------------------------------------
-        inist.regs.rax = inist.se.BVS("rax", 64)    # give convenient names
-        inist.regs.rbx = inist.se.BVS("rbx", 64)
-        inist.regs.rcx = inist.se.BVS("rcx", 64)
-        inist.regs.rdx = inist.se.BVS("rdx", 64)
-        inist.regs.rsi = inist.se.BVS("rsi", 64)
-        inist.regs.rdi = inist.se.BVS("rdi", 64)
+        if self.__proj.arch.name == "AMD64":
+
+            # ---------------------------------------------------------------------
+            # initialize all registers with a symbolic variable
+            # ---------------------------------------------------------------------
+            inist.regs.rax = inist.se.BVS("rax", 64)    # give convenient names
+            inist.regs.rbx = inist.se.BVS("rbx", 64)
+            inist.regs.rcx = inist.se.BVS("rcx", 64)
+            inist.regs.rdx = inist.se.BVS("rdx", 64)
+            inist.regs.rsi = inist.se.BVS("rsi", 64)
+            inist.regs.rdi = inist.se.BVS("rdi", 64)
 
 
-        # rbp may also needed as it's mostly used to access local variables (e.g., 
-        # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
-        # rsp related. In these cases it may worth to use rbp as well.
-        if MAKE_RBP_SYMBOLIC:
-            inist.regs.rbp = inist.se.BVS("rbp",64) # keep rbp symbolic
+            # rbp may also needed as it's mostly used to access local variables (e.g., 
+            # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
+            # rsp related. In these cases it may worth to use rbp as well.
+            if MAKE_RBP_SYMBOLIC:
+                inist.regs.rbp = inist.se.BVS("rbp",64) # keep rbp symbolic
+            else:
+                inist.registers.store('rbp', RBP_BASE_ADDR, size=8, endness=archinfo.Endness.LE)
+
+            # rsp must be concrete and properly initialized
+            inist.registers.store('rsp', RSP_BASE_ADDR, size=8, endness=archinfo.Endness.LE)
+
+            inist.regs.r8  = inist.se.BVS("r08", 64)
+            inist.regs.r9  = inist.se.BVS("r09", 64)
+            inist.regs.r10 = inist.se.BVS("r10", 64)
+            inist.regs.r11 = inist.se.BVS("r11", 64)
+            inist.regs.r12 = inist.se.BVS("r12", 64)
+            inist.regs.r13 = inist.se.BVS("r13", 64)
+            inist.regs.r14 = inist.se.BVS("r14", 64)
+            inist.regs.r15 = inist.se.BVS("r15", 64)
+
+
+            # ---------------------------------------------------------------------
+            # Other initializations
+            # ---------------------------------------------------------------------        
+            # map symbolic names to registers
+
+            # self.__symreg = { self.__getreg(inist, r):r for r in HARDWARE_REGISTERS }
+            self.__symreg = { 
+                inist.regs.rax : 'rax',
+                inist.regs.rbx : 'rbx',
+                inist.regs.rcx : 'rcx',
+                inist.regs.rdx : 'rdx',
+                inist.regs.rsi : 'rsi',
+                inist.regs.rdi : 'rdi',
+                inist.regs.rbp : 'rbp',
+                inist.regs.rsp : 'rsp',
+                inist.regs.r8  : 'r8',
+                inist.regs.r9  : 'r9',
+                inist.regs.r10 : 'r10',
+                inist.regs.r11 : 'r11',
+                inist.regs.r12 : 'r12',
+                inist.regs.r13 : 'r13',
+                inist.regs.r14 : 'r14',
+                inist.regs.r15 : 'r15'
+            }
+        elif self.__proj.arch.name == "X86":
+            # ---------------------------------------------------------------------
+            # initialize all registers with a symbolic variable
+            # ---------------------------------------------------------------------
+            inist.regs.eax = inist.se.BVS("eax", 32)    # give convenient names
+            inist.regs.ebx = inist.se.BVS("ebx", 32)
+            inist.regs.ecx = inist.se.BVS("ecx", 32)
+            inist.regs.edx = inist.se.BVS("edx", 32)
+            inist.regs.esi = inist.se.BVS("esi", 32)
+            inist.regs.edi = inist.se.BVS("edi", 32)
+
+
+            # rbp may also needed as it's mostly used to access local variables (e.g., 
+            # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
+            # rsp related. In these cases it may worth to use rbp as well.
+            if MAKE_RBP_SYMBOLIC:
+                inist.regs.rbp = inist.se.BVS("ebp",32) # keep rbp symbolic
+            else:
+                inist.registers.store('ebp', EBP_BASE_ADDR, size=4, endness=archinfo.Endness.LE)
+
+            # rsp must be concrete and properly initialized
+            inist.registers.store('esp', ESP_BASE_ADDR, size=4, endness=archinfo.Endness.LE)
+
+            # ---------------------------------------------------------------------
+            # Other initializations
+            # ---------------------------------------------------------------------
+            # map symbolic names to registers
+
+            # self.__symreg = { self.__getreg(inist, r):r for r in HARDWARE_REGISTERS }
+            self.__symreg = { 
+                inist.regs.eax : 'eax',
+                inist.regs.ebx : 'ebx',
+                inist.regs.ecx : 'ecx',
+                inist.regs.edx : 'edx',
+                inist.regs.esi : 'esi',
+                inist.regs.edi : 'edi',
+                inist.regs.ebp : 'ebp',
+                inist.regs.esp : 'esp',
+            }
+
         else:
-            inist.registers.store('rbp', FRAMEPTR_BASE_ADDR, size=8, endness=archinfo.Endness.LE)
-        
-        # rsp must be concrete and properly initialized
-        inist.registers.store('rsp', RSP_BASE_ADDR, size=8, endness=archinfo.Endness.LE)
-
-        inist.regs.r8  = inist.se.BVS("r08", 64)
-        inist.regs.r9  = inist.se.BVS("r09", 64)
-        inist.regs.r10 = inist.se.BVS("r10", 64)
-        inist.regs.r11 = inist.se.BVS("r11", 64)
-        inist.regs.r12 = inist.se.BVS("r12", 64)
-        inist.regs.r13 = inist.se.BVS("r13", 64)
-        inist.regs.r14 = inist.se.BVS("r14", 64)
-        inist.regs.r15 = inist.se.BVS("r15", 64)
-
-
-        # ---------------------------------------------------------------------
-        # Other initializations
-        # ---------------------------------------------------------------------        
-        # map symbolic names to registers
-
-        # self.__symreg = { self.__getreg(inist, r):r for r in HARDWARE_REGISTERS }
-        self.__symreg = { 
-            inist.regs.rax : 'rax',
-            inist.regs.rbx : 'rbx',
-            inist.regs.rcx : 'rcx',
-            inist.regs.rdx : 'rdx',
-            inist.regs.rsi : 'rsi',
-            inist.regs.rdi : 'rdi',
-            inist.regs.rbp : 'rbp',
-            inist.regs.rsp : 'rsp',
-            inist.regs.r8  : 'r8',
-            inist.regs.r9  : 'r9',
-            inist.regs.r10 : 'r10',
-            inist.regs.r11 : 'r11',
-            inist.regs.r12 : 'r12',
-            inist.regs.r13 : 'r13',
-            inist.regs.r14 : 'r14',
-            inist.regs.r15 : 'r15'
-        }
-
+            assert False
 
         # UPDATE: Don't create a symbolic stack, as this consumes all the Virtual Memory and
         # may crash the machine. By carefully configuring rsp and rbp within the limit of virtual

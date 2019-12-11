@@ -64,13 +64,18 @@ STR2BV             = { }                            # map strings to bitvectors
 
 
 # WARNING: be very careful how to set rbp
-FRAMEPTR_BASE_ADDR = RSP_BASE_ADDR + 0xc00          # base address of rbp (when it's used)
+RBP_BASE_ADDR = RSP_BASE_ADDR + 0xc00          # base address of rbp (when it's used)
+EBP_BASE_ADDR = ESP_BASE_ADDR + 0xc00          # base address of rbp (when it's used)
 
-HARDWARE_REGISTERS = [                              # x64 hardware registers
-    'rax', 'rdx', 'rcx', 'rbx', 'rdi', 'rsi', 'rsp', 'rbp',
-    'r8',  'r9',  'r10', 'r11', 'r12', 'r13', 'r14', 'r15' 
-]
-
+def HARDWARE_REGISTERS(proj):
+    if proj.arch.name == "AMD64":
+        return [                              # x64 hardware registers
+            'rax', 'rdx', 'rcx', 'rbx', 'rdi', 'rsi', 'rsp', 'rbp',
+            'r8',  'r9',  'r10', 'r11', 'r12', 'r13', 'r14', 'r15']
+    elif proj.arch.name == "X86":
+        return ['eax', 'edx', 'ecx', 'ebx', 'edi', 'esi', 'esp', 'ebp']
+    else:
+        assert False
 SYM2ADDR = { }
 
 SYMBOLIC_FILENAME = 'foo.txt'                       # filename for the symbolic execution to use

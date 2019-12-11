@@ -133,8 +133,17 @@ MAX_ALLOWED_SUBPATH_LEN = 40
 # WARNING: Make sure that RSP doesn't go beyond page limit (o/w addresses are not +w) +0x800 is a
 #          very good offset. Don't change it !
 # 
-STACK_BASE_ADDR = 0x7ffffffffff0000
-RSP_BASE_ADDR   = STACK_BASE_ADDR + 0x800
+STACK64_BASE_ADDR = 0x7ffffffffff0000
+STACK32_BASE_ADDR = 0x7fff0000
+def STACK_BASE_ADDR(proj):
+    if proj.arch.name == "X86":
+        return STACK32_BASE_ADDR
+    elif proj.arch.name == "AMD64":
+        return STACK64_BASE_ADDR
+    else:
+        assert False
+RSP_BASE_ADDR   = STACK64_BASE_ADDR + 0x800
+ESP_BASE_ADDR   = STACK32_BASE_ADDR + 0x800
 
 
 

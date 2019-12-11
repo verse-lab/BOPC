@@ -180,27 +180,8 @@ class simulate:
             state = self.__state
 
         try:
-            return {    
-                'rax' : state.regs.rax,
-                'rbx' : state.regs.rbx,
-                'rcx' : state.regs.rcx,
-                'rdx' : state.regs.rdx,
-                'rsi' : state.regs.rsi,
-                'rdi' : state.regs.rdi,
-                'rbp' : state.regs.rbp,
-                'rsp' : state.regs.rsp,
-                'r8'  : state.regs.r8,
-                'r08' : state.regs.r8,
-                'r9'  : state.regs.r9,
-                'r09' : state.regs.r9,
-                'r10' : state.regs.r10,
-                'r11' : state.regs.r11,
-                'r12' : state.regs.r12,
-                'r13' : state.regs.r13,
-                'r14' : state.regs.r14,
-                'r15' : state.regs.r15,
-            }[ reg ]
-        except KeyError:
+            return getattr(state.regs, reg)
+        except:
             fatal("Unknow register '%s'" % reg)
 
 
@@ -720,7 +701,7 @@ class simulate:
         
         # get register name (no exceptions here)
         regnam = state.arch.register_names[ state.inspect.reg_write_offset ]
-        if regnam in HARDWARE_REGISTERS:            # we don't care about all registers (rip, etc.)
+        if regnam in HARDWARE_REGISTERS(self.__proj):            # we don't care about all registers (rip, etc.)
 
             dbg_prnt(DBG_LVL_3, '\t0x%08x: %s = %s' % 
                         (insn_addr, regnam, state.inspect.reg_write_expr), pre='[r] ')
@@ -1543,42 +1524,66 @@ class simulate:
         self.__state = self.__proj.factory.call_state(
                                     mode       = 'symbolic', 
                                     addr       = entry, 
-                                    stack_base = STACK_BASE_ADDR, 
+                                    stack_base = STACK_BASE_ADDR(self.__proj), 
                                     stack_size = 0x10000
                         )
 
+        # XXX: handle 32
 
-        # initialize all registers with a symbolic variable
-        self.__state.regs.rax = self.__state.se.BVS("rax", 64)
-        self.__state.regs.rbx = self.__state.se.BVS("rbx", 64)
-        self.__state.regs.rcx = self.__state.se.BVS("rcx", 64)
-        self.__state.regs.rdx = self.__state.se.BVS("rdx", 64)
-        self.__state.regs.rsi = self.__state.se.BVS("rsi", 64)
-        self.__state.regs.rdi = self.__state.se.BVS("rdi", 64)
-        
-        # rsp must be concrete and properly initialized
-        self.__state.registers.store('rsp', RSP_BASE_ADDR, size=8)
+        if self.__proj.arch.name == "AMD64":
+            # initialize all registers with a symbolic variable
+            self.__state.regs.rax = self.__state.se.BVS("rax", 64)
+            self.__state.regs.rbx = self.__state.se.BVS("rbx", 64)
+            self.__state.regs.rcx = self.__state.se.BVS("rcx", 64)
+            self.__state.regs.rdx = self.__state.se.BVS("rdx", 64)
+            self.__state.regs.rsi = self.__state.se.BVS("rsi", 64)
+            self.__state.regs.rdi = self.__state.se.BVS("rdi", 64)
 
-        # rbp may also needed as it's mostly used to access local variables (e.g., 
-        # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
-        # rsp related. In these cases it may worth to use rbp as well.
-        if MAKE_RBP_SYMBOLIC:
-            self.__state.regs.rbp = self.__state.se.BVS("rbp", 64)
+            # rsp must be concrete and properly initialized
+            self.__state.registers.store('rsp', RSP_BASE_ADDR, size=8)
+
+            # rbp may also needed as it's mostly used to access local variables (e.g., 
+            # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
+            # rsp related. In these cases it may worth to use rbp as well.
+            if MAKE_RBP_SYMBOLIC:
+                self.__state.regs.rbp = self.__state.se.BVS("rbp", 64)
+            else:
+                self.__state.registers.store('rbp', RBP_BASE_ADDR, size=8)        
+
+            self.__state.regs.r8  = self.__state.se.BVS("r08", 64)
+            self.__state.regs.r9  = self.__state.se.BVS("r09", 64)
+            self.__state.regs.r10 = self.__state.se.BVS("r10", 64)
+            self.__state.regs.r11 = self.__state.se.BVS("r11", 64)
+            self.__state.regs.r12 = self.__state.se.BVS("r12", 64)
+            self.__state.regs.r13 = self.__state.se.BVS("r13", 64)
+            self.__state.regs.r14 = self.__state.se.BVS("r14", 64)
+            self.__state.regs.r15 = self.__state.se.BVS("r15", 64)
+        elif self.__proj.arch.name == "X86":
+            # initialize all registers with a symbolic variable
+            self.__state.regs.eax = self.__state.se.BVS("eax", 32)
+            self.__state.regs.ebx = self.__state.se.BVS("ebx", 32)
+            self.__state.regs.ecx = self.__state.se.BVS("ecx", 32)
+            self.__state.regs.edx = self.__state.se.BVS("edx", 32)
+            self.__state.regs.esi = self.__state.se.BVS("esi", 32)
+            self.__state.regs.edi = self.__state.se.BVS("edi", 32)
+
+            # rsp must be concrete and properly initialized
+            self.__state.registers.store('esp', RSP_BASE_ADDR, size=4)
+
+            # rbp may also needed as it's mostly used to access local variables (e.g., 
+            # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
+            # rsp related. In these cases it may worth to use rbp as well.
+            if MAKE_RBP_SYMBOLIC:
+                self.__state.regs.ebp = self.__state.se.BVS("rbp", 32)
+            else:
+                self.__state.registers.store('ebp', EBP_BASE_ADDR, size=4)
+
         else:
-            self.__state.registers.store('rbp', FRAMEPTR_BASE_ADDR, size=8)        
-
-        self.__state.regs.r8  = self.__state.se.BVS("r08", 64)
-        self.__state.regs.r9  = self.__state.se.BVS("r09", 64)
-        self.__state.regs.r10 = self.__state.se.BVS("r10", 64)
-        self.__state.regs.r11 = self.__state.se.BVS("r11", 64)
-        self.__state.regs.r12 = self.__state.se.BVS("r12", 64)
-        self.__state.regs.r13 = self.__state.se.BVS("r13", 64)
-        self.__state.regs.r14 = self.__state.se.BVS("r14", 64)
-        self.__state.regs.r15 = self.__state.se.BVS("r15", 64)
+            assert False
 
 
         # remember the initial symbolic variables for the registers
-        self.__inireg = { r : self.__getreg(r) for r in HARDWARE_REGISTERS }
+        self.__inireg = { r : self.__getreg(r) for r in HARDWARE_REGISTERS(self.__proj) }
 
 
         # initialize SPL variables        
