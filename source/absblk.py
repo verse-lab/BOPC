@@ -1012,9 +1012,8 @@ class abstract_ng( object ):
         # -------------------------------------------------------------------------
         # Do the symbolic execution (using simulation managers)
         # ------------------------------------------------------------------------- 
-        simgr = self.__proj.factory.simulation_manager(thing=inist)
-        simgr.save_unconstrained = True             # do not discard unconstrained stashes
-
+        # do not discard unconstrained stashes
+        simgr = self.__proj.factory.simulation_manager(thing=inist, save_unconstrained=True)
 
         signal.signal(signal.SIGALRM, self.__sig_handler)
         signal.alarm(ABSBLK_TIMEOUT)                  
