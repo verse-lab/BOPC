@@ -253,6 +253,8 @@ class simulate:
         if not state:                               # if no state is given, use the current one
             state = self.__state
 
+        stack_addr = STACK_BASE_ADDR(self.__proj)
+
         # TODO: check permissions for addr+1, addr+2, ... addr+length-1
         #warn('POOL UPPER BOUND %x' % (POOLVAR_BASE_ADDR + self.__plsz))
 
@@ -269,7 +271,7 @@ class simulate:
 
         # special case when a stack address is in the next page
         # TODO: make it relative from STACK_BASE_ADDR
-        elif addr & 0x07ffffffffff0000 == 0x07ffffffffff0000:
+        elif addr & stack_addr == stack_addr:
             return 'RW'
 
 
