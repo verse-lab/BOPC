@@ -356,6 +356,10 @@ class mark( object ):
         for addr in self.__blk_iter(self.__avoid, 'block'):  
             dbg_prnt(DBG_LVL_3, "Abstracting block at 0x%x (%d/%d)..." % (addr, counter, nnodes))
 
+            # Don't bother abstracting if we don't know the node
+            if addr not in ADDR2NODE:
+                continue
+
             try:
                 # apply abstraction to the basic block that starts at "addr"
                 abstr = A.abstract_ng(self.__proj, addr)
