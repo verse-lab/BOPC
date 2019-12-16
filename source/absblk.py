@@ -236,7 +236,7 @@ class abstract_ng( object ):
 
                     try:
                         # special case when a stack address is in the next page (-W)
-                        if value & 0x07ffffffffff0000 == 0x07ffffffffff0000:
+                        if value & STACK_BASE_ADDR(self.__proj) == STACK_BASE_ADDR(self.__proj):
                             rwx = state.memory.permissions(value-0x4000)
 
                             # give it a second change
