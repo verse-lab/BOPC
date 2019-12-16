@@ -1115,10 +1115,16 @@ class abstract_ng( object ):
             # name = blk_insns[0].insn.insn_name()    # get instruction name (w/o the rep*)
               
             # make 'rsi', 'rdi' and 'rcx' clobbering (all of them are modified)
-            self.regwr['rdi'] = {'type' : 'clob'}    
-            self.regwr['rsi'] = {'type' : 'clob'}
-            self.regwr['rcx'] = {'type' : 'clob'}            
-
+            if self.__proj.arch.name == "AMD64":
+                self.regwr['rdi'] = {'type' : 'clob'}
+                self.regwr['rsi'] = {'type' : 'clob'}
+                self.regwr['rcx'] = {'type' : 'clob'}
+            elif self.__proj.arch.name == "X86":
+                self.regwr['edi'] = {'type' : 'clob'}
+                self.regwr['esi'] = {'type' : 'clob'}
+                self.regwr['ecx'] = {'type' : 'clob'}
+            else:
+                assert False
 
         '''
         print
