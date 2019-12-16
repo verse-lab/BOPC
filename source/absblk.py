@@ -32,7 +32,7 @@ import simuvex
 import claripy
 import archinfo
 import angr
-
+import itertools
 
 
 # ------------------------------------------------------------------------------------------------
@@ -252,8 +252,11 @@ class abstract_ng( object ):
                 # register gets an expression. Check for simple register modifications: 
                 # "<reg> <op>= <const>" (we can easily scale this to <reg> <op>= <reg>)
                 # Note that modified register should be the same with action.offset
-                node = [leaf for leaf in action.data.recursive_leaf_asts]
-                    
+
+                # short circuit if recursive_leaf_asts is too long
+                # since we won't use it anyway
+                node = [leaf for leaf in itertools.islice(action.data.recursive_leaf_asts, 3)]
+
                 # we need an AST with depth 2, 2 leaves and 1 variable (i.e., register)
                 if action.data.depth == 2 and len(action.data.variables) == 1 and len(node) == 2:
                     try:
@@ -366,8 +369,11 @@ class abstract_ng( object ):
             # In this case, both action.addr and action.data will consist of a
             # single leaf in their ast which is a register
             # -----------------------------------------------------------------
-            mem_reg = [leaf for leaf in action.addr.recursive_leaf_asts]
-            val_reg = [leaf for leaf in action.data.recursive_leaf_asts]
+
+            # short circuit if there is more than one leaf because
+            # this generator scales exponentially
+            mem_reg = [leaf for leaf in itertools.islice(action.addr.recursive_leaf_asts, 2)]
+            val_reg = [leaf for leaf in itertools.islice(action.data.recursive_leaf_asts, 2)]
 
 
             # print 'ADDR', mem_reg, action.addr
