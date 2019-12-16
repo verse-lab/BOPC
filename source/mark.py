@@ -210,7 +210,7 @@ class mark( object ):
     #
     def __reg_filter( self, reg ):
         # drop register mappings that use rsp (or rbp if configured)
-        if reg == 'rsp' or reg == 'rbp' and not MAKE_RBP_SYMBOLIC:
+        if reg == 'rsp' or reg == 'esp' or ((reg == 'rbp' or reg == 'ebp') and not MAKE_RBP_SYMBOLIC):
             dbg_prnt(DBG_LVL_4, "A virtual register cannot be mapped to '%s'" % 
                                 bolds(reg))
 
