@@ -66,6 +66,13 @@ STR2BV             = { }                            # map strings to bitvectors
 # WARNING: be very careful how to set rbp
 RBP_BASE_ADDR = RSP_BASE_ADDR + 0xc00          # base address of rbp (when it's used)
 EBP_BASE_ADDR = ESP_BASE_ADDR + 0xc00          # base address of ebp (when it's used)
+def FRAMEPTR_BASE_ADDR(proj):
+    if proj.arch.name == "AMD64":
+        return RBP_BASE_ADDR
+    elif proj.arch.name == "X86":
+        return RSP_BASE_ADDR
+    else:
+        assert False
 
 def HARDWARE_REGISTERS(proj):
     if proj.arch.name == "AMD64":

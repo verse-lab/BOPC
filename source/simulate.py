@@ -2395,17 +2395,17 @@ class simulate:
             return '(' + self.__relative[addr] + ')'
 
         # frame first
-        elif abs(addr - RSP_BASE_ADDR) < MAX_BOUND:
-            if addr > RSP_BASE_ADDR:
-                return "($stack + 0x%03x)" % (addr - RSP_BASE_ADDR)
+        elif abs(addr - STACK_BASE_ADDR(self.__proj)) < MAX_BOUND:
+            if addr > STACK_BASE_ADDR(self.__proj):
+                return "($stack + 0x%03x)" % (addr - STACK_BASE_ADDR(self.__proj))
             else:
-                return "($stack - 0x%03x)" % (RSP_BASE_ADDR - addr)
+                return "($stack - 0x%03x)" % (STACK_BASE_ADDR(self.__proj) - addr)
 
-        elif abs(addr - FRAMEPTR_BASE_ADDR) < MAX_BOUND:
-            if addr > FRAMEPTR_BASE_ADDR:
-                return "($frame + 0x%03x)" % (addr - FRAMEPTR_BASE_ADDR)
+        elif abs(addr - FRAMEPTR_BASE_ADDR(self.__proj)) < MAX_BOUND:
+            if addr > FRAMEPTR_BASE_ADDR(self.__proj):
+                return "($frame + 0x%03x)" % (addr - FRAMEPTR_BASE_ADDR(self.__proj))
             else:
-                return "($frame - 0x%03x)" % (FRAMEPTR_BASE_ADDR - addr)
+                return "($frame - 0x%03x)" % (FRAMEPTR_BASE_ADDR(self.__proj) - addr)
     
    
         elif abs(addr - POOLVAR_BASE_ADDR) < MAX_BOUND:
@@ -2437,10 +2437,10 @@ class simulate:
         if addr in self.__relative:                 # if in relative table
             return True
 
-        elif abs(addr - RSP_BASE_ADDR) < MAX_BOUND:
+        elif abs(addr - STACK_BASE_ADDR(self.__proj)) < MAX_BOUND:
             return True
         
-        elif abs(addr - FRAMEPTR_BASE_ADDR) < MAX_BOUND:
+        elif abs(addr - FRAMEPTR_BASE_ADDR(self.__proj)) < MAX_BOUND:
             return True
 
         elif abs(addr - POOLVAR_BASE_ADDR) < MAX_BOUND:
@@ -2658,7 +2658,7 @@ class simulate:
 
 
         dbg_prnt(DBG_LVL_0, "pool_base  = 0x%x" % POOLVAR_BASE_ADDR)
-        dbg_prnt(DBG_LVL_0, "stack_base = 0x%x" % RSP_BASE_ADDR)
+        dbg_prnt(DBG_LVL_0, "stack_base = 0x%x" % STACK_BASE_ADDR(self.__proj))
         
 
 
