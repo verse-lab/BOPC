@@ -369,7 +369,7 @@ class simulate:
 
             # in case that addr > 0, make sure that symv is concretized from 0
             # (otherwise, we'll start before self.__alloc_size)
-            x = state.se.BVS('x', 64)
+            x = state.se.BVS('x', symv.length)
             # print 'x is ', x, alloca + addr, symv
 
             # this indirection ensure that symv concretized to 64 bits
