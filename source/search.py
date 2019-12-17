@@ -839,8 +839,12 @@ class search:
                     output.newline()
 
                     # for each active stash, dump all the solutions
-                    for simulation in self.__simstash:
-                        simulation.dump( output )
+                    try:
+                        for simulation in self.__simstash:
+                            simulation.dump( output, self.__options['noawp'] )
+                    except Exception, e:
+                        dbg_prnt(DBG_LVL_2, "Late exception while dumping: " + str(e))
+                        continue
 
                     emph(bolds('BOPC is now happy :)'))
                     if self.__options['noawp']:
