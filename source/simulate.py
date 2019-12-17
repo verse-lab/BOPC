@@ -1172,7 +1172,7 @@ class simulate:
                         state_copy = state.copy()                        
 
                         # this can be unsatisfiable. Try it on a copy of the state
-                        x = state.se.BVS('x', 64)
+                        x = state.se.BVS('x', STR2BV[addr].length)
                         
                         state_copy.add_constraints(x == POOLVAR_BASE_ADDR + self.__plsz)
                         state_copy.add_constraints(STR2BV[addr] == x)
@@ -1186,7 +1186,7 @@ class simulate:
                             del state_copy
                         else:
                             # constraint ok. add it to the real state
-                            x = state.se.BVS('x', 64)
+                            x = state.se.BVS('x', STR2BV[addr].length)
                         
                             state.add_constraints(x == POOLVAR_BASE_ADDR + self.__plsz)
                             state.add_constraints(STR2BV[addr] == x)
