@@ -2371,7 +2371,7 @@ class simulate:
     # :Arg addr: Current address
     # :Ret: A string with the realtive address.
     #
-    def __make_relative( self, addr ):
+    def __make_relative( self, addr, noawp = False ):
         '''
         # TODO: breaks for eval/orzhttpd/orzhttpd -s payloads/memrd.spl        
         elif abs(addr - FRAMEPTR_BASE_ADDR) < MAX_BOUND or abs(addr - RSP_BASE_ADDR) < MAX_BOUND:
@@ -2392,6 +2392,8 @@ class simulate:
 
 
         if addr in self.__relative:                 # if in relative table
+            if noawp:
+                raise Exception("Detected a AWP write to relative table entry at %x" % addr)
             return '(' + self.__relative[addr] + ')'
 
         # frame first
@@ -2406,22 +2408,29 @@ class simulate:
                 return "($frame + 0x%03x)" % (addr - FRAMEPTR_BASE_ADDR(self.__proj))
             else:
                 return "($frame - 0x%03x)" % (FRAMEPTR_BASE_ADDR(self.__proj) - addr)
-    
-   
+
         elif abs(addr - POOLVAR_BASE_ADDR) < MAX_BOUND:
+            if noawp:
+                raise Exception("Detected a AWP write to pool at %x" % addr)
             if addr > POOLVAR_BASE_ADDR:
                 return "($pool + 0x%03x)" % (addr - POOLVAR_BASE_ADDR)
             else:
                 return "($pool - 0x%03x)" % (POOLVAR_BASE_ADDR - addr)
-            
+
         elif POOLVAR_BASE_ADDR <= addr <= POOLVAR_BASE_ADDR + self.__plsz:
+            if noawp:
+                raise Exception("Detected a AWP write to pool at %x" % addr)
             return "($pool + 0x%03x)" % (addr - POOLVAR_BASE_ADDR)
 
 
         elif ALLOCATOR_BASE_ADDR <= addr and addr <= ALLOCATOR_CEIL_ADDR:
-            return "($alloca + 0x%03x)" % (addr - ALLOCATOR_BASE_ADDR)                    
-            
+            if noawp:
+                raise Exception("Detected a AWP write to allocator at %x" % addr)
+            return "($alloca + 0x%03x)" % (addr - ALLOCATOR_BASE_ADDR)
+
         else:
+            if noawp:
+                raise Exception("Detected a AWP write to absolute at %x" % addr)
             return "0x%x" % addr
 
 
@@ -2593,11 +2602,7 @@ class simulate:
                     #lval = ["0x{0:02x}".format(ord(c)) for c in x]
 
 
-                paddr = self.__make_relative(addr)
-
-                # Is this a AWP write? Optionally skip this solution.
-                if noawp and "0x%x" % addr == paddr:
-                    raise Exception("Detected a AWP write at %s" % paddr)
+                paddr = self.__make_relative(addr, noawp)
                 #   output.memory(addr, '', addr, lval, op='+')
 
                 for a, b in self.__ext.iteritems():
