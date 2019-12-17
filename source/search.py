@@ -839,6 +839,8 @@ class search:
                         simulation.dump( output )
 
                     emph(bolds('BOPC is now happy :)'))
+                    if self.__options['noawp']:
+                        print("NOAWP solution found!")
 
                     output.save(self.__options['filename'])                    
             

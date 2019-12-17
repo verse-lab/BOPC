@@ -2463,7 +2463,7 @@ class simulate:
     # :Arg output: The output object
     # :Ret: None.
     #
-    def dump( self, output ):
+    def dump( self, output, noawp = False ):
         # for a, b in self.__relative.iteritems():
         #     print 'relative', hex(a), b
 
@@ -2593,7 +2593,11 @@ class simulate:
                     #lval = ["0x{0:02x}".format(ord(c)) for c in x]
 
 
-                paddr = self.__make_relative(addr)                
+                paddr = self.__make_relative(addr)
+
+                # Is this a AWP write? Optionally skip this solution.
+                if noawp and "0x%x" % addr == paddr:
+                    raise Exception("Detected a AWP write at %s" % paddr)
                 #   output.memory(addr, '', addr, lval, op='+')
 
                 for a, b in self.__ext.iteritems():

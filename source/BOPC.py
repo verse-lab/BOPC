@@ -231,6 +231,15 @@ def parse_args():
         required = False
     )
 
+    group_d.add_argument(
+        "--no-awp",
+        help     = "Do not create payloads that use the AWP",
+        action   = "store_const",
+        default  = False,
+        const    = True,
+        dest     = 'noawp',
+        required = False
+    )
 
     # -------------------------------------------------------------------------
     # Group for application capabilities
@@ -460,6 +469,7 @@ if __name__ == '__main__':
 
             try:
                 options = {
+                    'noawp'      : args.noawp,
                     'format'     : args.format,
                     'solutions'  : args.findall,
                     'mapping-id' : int(args.mapping_id),
