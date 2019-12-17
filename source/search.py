@@ -291,7 +291,11 @@ class search:
             # base case. Tree enumerated successfully
             # if we reach this point we have a solution (a trace)
 
-            simulation.finalize()
+            try:
+                simulation.finalize()
+            except Exception, e:
+                warn("Exception in finalize: %s" % str(e))
+                return -1
 
             self.__simstash.append(simulation) 
 
