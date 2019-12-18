@@ -293,8 +293,15 @@ class search:
 
             try:
                 simulation.finalize()
+                # In noawp mode, we want to try to dump early since
+                # that is where we catch use of AWP.  If we do this
+                # here, we can still continue searching this register
+                # mapping.
+                if self.__options['noawp']:
+                    output = O.output( self.__options['format'] )
+                    simulation.dump( output, self.__options['noawp'] )
             except Exception, e:
-                warn("Exception in finalize: %s" % str(e))
+                warn("Late Exception in finalize: %s" % str(e))
                 return -1
 
             self.__simstash.append(simulation) 

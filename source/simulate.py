@@ -2518,6 +2518,8 @@ class simulate:
                 output.comment('(DROP) %s = %s' % (reg, val))
                 #output.register(reg, val)
                 #output.newline()
+                if noawp:
+                    raise Exception("Detected an apriori register assignment")
 
         output.newline()
 
