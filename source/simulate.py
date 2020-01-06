@@ -51,8 +51,10 @@ import time
 
 # WARNING: In case that relative addresses fail, adjust them.
 # TODO: Add command line options for them.
-MAX_MEM_UNIT_BYTES      = 8                         # max. memory unit size (for x64 is 8 bytes)
-MAX_MEM_UNIT_BITS       = MAX_MEM_UNIT_BYTES << 3   # max. memory unit size in bits
+def MAX_MEM_UNIT_BYTES(proj):
+    return proj.arch.bytes                         # max. memory unit size (for x64 is 8 bytes)
+def MAX_MEM_UNIT_BITS(proj):
+    return proj.arch.bits                          # max. memory unit size in bits
 
 ALLOCATOR_BASE_ADDR     = 0xd8000000                # the base address of the allocator
 ALLOCATOR_GRANULARITY   = 0x1000                    # the allocation size
@@ -409,7 +411,9 @@ class simulate:
     # :Arg length: Length of the variable
     # :Ret: If memory was initialized, function returns True. Otherwise it returns False.
     #
-    def __init_mem( self, state, addr, length=MAX_MEM_UNIT_BYTES ):
+    def __init_mem( self, state, addr, length=None ):
+        if length is None:
+            length = self.__proj.arch.bytes
         if addr in self.__mem:                      # memory cell is already initialized
             return False
         
@@ -502,7 +506,7 @@ class simulate:
 
         # concretize size (newer versions of angr never set state.inspect.mem_read_length to None)
         if state.inspect.mem_read_length == None:
-            size = MAX_MEM_UNIT_BYTES               # if size is None, set it to default
+            size = MAX_MEM_UNIT_BYTES(self.__proj)               # if size is None, set it to default
         else:
             size = state.se.eval(state.inspect.mem_read_length)
 
@@ -563,7 +567,7 @@ class simulate:
 
         # concretize size (newer versions of angr never set state.inspect.mem_read_length to None)
         if state.inspect.mem_write_length == None:
-            size = MAX_MEM_UNIT_BYTES               # if size is None, set it to default
+            size = MAX_MEM_UNIT_BYTES(self.__proj)               # if size is None, set it to default
         else:
             size = state.se.eval(state.inspect.mem_write_length)
         
@@ -883,7 +887,7 @@ class simulate:
         # NOTE: In current implementation, if there are >1 values, each of them has size 8.
         #       However we keep the code more general (i.e. independent of SPL compiler) so
         #       we don't use this observation.
-        self.__plsz += sum(map(lambda v : len(v) if isinstance(v, str) else 8, 
+        self.__plsz += sum(map(lambda v : len(v) if isinstance(v, str) else self.__proj.arch.bytes, 
                                 self.__get_var_values(variable)))
 
         return addr                                 # return that address
@@ -1289,7 +1293,7 @@ class simulate:
 
                 # before you write the value, check if the contents of this address are already
                 # in the contraints
-                symv = self.__mread(state, con_addr, 8)
+                symv = self.__mread(state, con_addr, self.__proj.arch.bytes)
                 print 'PRIOR VALUE at', hex(con_addr), '::', symv
                 if self.__in_constraints(symv) or [V for V in self.__inireg.values() if V.shallow_repr() == symv.shallow_repr()]:
                     dbg_prnt(DBG_LVL_2, "RSVP already in constraints!")
@@ -1297,13 +1301,13 @@ class simulate:
                     symv = None
 
 
-                for i in range(8):                    
+                for i in range(self.__proj.arch.bytes):
                     state.memory.store(con_addr + i, p_val[i])
                     self.__imm.add(con_addr + i)    # mark immutable addresses at byte granularity
 
 
                 # add reservation to memory
-                self.__mem[ con_addr ] = (val, 8)
+                self.__mem[ con_addr ] = (val, self.__proj.arch.bytes)
 
                 dbg_prnt(DBG_LVL_2, "Writing RSVP *0x%x = 0x%x" % (con_addr, val))
 
@@ -1570,7 +1574,7 @@ class simulate:
             self.__state.regs.edi = self.__state.se.BVS("edi", 32)
 
             # rsp must be concrete and properly initialized
-            self.__state.registers.store('esp', RSP_BASE_ADDR, size=4)
+            self.__state.registers.store('esp', ESP_BASE_ADDR, size=4)
 
             # rbp may also needed as it's mostly used to access local variables (e.g., 
             # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
