@@ -70,7 +70,7 @@ def FRAMEPTR_BASE_ADDR(proj):
     if proj.arch.name == "AMD64":
         return RBP_BASE_ADDR
     elif proj.arch.name == "X86":
-        return RSP_BASE_ADDR
+        return EBP_BASE_ADDR
     else:
         assert False
 

@@ -145,6 +145,13 @@ def STACK_BASE_ADDR(proj):
 RSP_BASE_ADDR   = STACK64_BASE_ADDR + 0x800
 ESP_BASE_ADDR   = STACK32_BASE_ADDR + 0x800
 
+def STACKPTR_BASE_ADDR(proj):
+    if proj.arch.name == "X86":
+        return RSP_BASE_ADDR
+    elif proj.arch.name == "AMD64":
+        return ESP_BASE_ADDR
+    else:
+        assert False
 
 
 # -------------------------------------------------------------------------------------------------

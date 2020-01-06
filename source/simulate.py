@@ -1212,8 +1212,8 @@ class simulate:
                     # The stack address in the basic block is different from the one in the
                     # current path. So readjust it (TODO: Do it in a less sloppy way)
                     # TODO: !!!!!!!
-                    if abs(con_addr - RSP_BASE_ADDR) < 0x1000:
-                        con_addr = (con_addr - RSP_BASE_ADDR) + state.se.eval(state.regs.rsp)
+                    if abs(con_addr - STACKPTR_BASE_ADDR(self.__proj)) < 0x1000:
+                        con_addr = (con_addr - STACKPTR_BASE_ADDR(self.__proj)) + state.se.eval(state.regs.rsp)
                         print 'CON', state.regs.rsp, hex(state.se.eval(state.regs.rsp))
                         print 'CONCON', hex(con_addr)
                         #  exit()
@@ -1271,7 +1271,7 @@ class simulate:
                 # if this address has already been written in the past, any writes will
                 # be overwritten, so discard current path                
                 #if con_addr in self.__mem or con_addr in self.__imm or (con_addr + 7) in self.__imm:
-                if con_addr in self.__imm or (con_addr + 7) in self.__imm:
+                if con_addr in self.__imm or (con_addr + self.__proj.arch.bytes - 1) in self.__imm:
                     dbg_prnt(DBG_LVL_2, "RSVP 0x%x has already been written or it's immutable. "
                                         "Discard current path." % con_addr)
 
