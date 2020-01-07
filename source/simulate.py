@@ -1580,7 +1580,7 @@ class simulate:
             # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
             # rsp related. In these cases it may worth to use rbp as well.
             if MAKE_RBP_SYMBOLIC:
-                self.__state.regs.ebp = self.__state.se.BVS("rbp", 32)
+                self.__state.regs.ebp = self.__state.se.BVS("ebp", 32)
             else:
                 self.__state.registers.store('ebp', EBP_BASE_ADDR, size=4)
 

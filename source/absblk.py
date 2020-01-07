@@ -1002,7 +1002,7 @@ class abstract_ng( object ):
             # rax = [rbp-0x40]) but some binaries don't use rbp and all references are
             # rsp related. In these cases it may worth to use rbp as well.
             if MAKE_RBP_SYMBOLIC:
-                inist.regs.rbp = inist.se.BVS("ebp",32) # keep rbp symbolic
+                inist.regs.ebp = inist.se.BVS("ebp",32) # keep ebp symbolic
             else:
                 inist.registers.store('ebp', EBP_BASE_ADDR, size=4, endness=archinfo.Endness.LE)
 
