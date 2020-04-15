@@ -1,0 +1,4 @@
+void payload()
+{
+        __r0 = 0xd34db33f;
+}

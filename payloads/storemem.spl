@@ -1,0 +1,6 @@
+void payload()
+{
+        __r0 = MEMADDR;
+        __r1 = 0xd34db33f;
+        *__r0 = __r1;
+}
