@@ -509,7 +509,7 @@ def __get_dg_layer_nodes( delta_graph, layer_id ):
 # :Ret: If the CFG is visualized successfully function returns True. Otherwise it returns
 #       False.
 #
-def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=set(), cur_uid=0, 
+def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename='result', paths=set(), cur_uid=0, 
                func=None ):
                    
     G = Digraph('G', format='svg', filename=filename)

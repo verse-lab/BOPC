@@ -7,7 +7,7 @@ docker build -t bopc .
 ```
 -- Once built, to run, run the following:
 ```
-docker run --rm -it bopc 
+docker run --rm -it bopc -v ./working:/media/working
 ```
 
 

@@ -1,5 +1,5 @@
 FROM python:2.7.18-buster
-
+VOLUME /media/working
 
 COPY ./setup.sh ./
 
