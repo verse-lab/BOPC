@@ -1,4 +1,15 @@
 # Overview #
+BOPC with dockerfile
+
+-- To build, run the following from the project root:
+```
+docker build -t bopc .
+```
+-- Once built, to run, run the following:
+```
+docker run --rm -it bopc 
+```
+
 
 This is a fork of BOPC we created to evaluate BOPC in our paper, *A
 Generic Technique for Automatically Finding Defense-Aware Code Reuse
