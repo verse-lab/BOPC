@@ -34,10 +34,10 @@ import path as P
 import networkx as nx
 import textwrap
 import datetime
-import cPickle as pickle
+import pickle
 import math
 import numpy
-
+import IPython
 
 
 # -----------------------------------------------------------------------------
@@ -158,7 +158,7 @@ class capability( object ):
 
                 return                              # your job is done here
 
-            except IOError, err:
+            except IOError as err:
                 # if you can't load it, simply re-calculate it ;)
 
                 error("Cannot load Capability Graph: %s" % str(err))
@@ -175,14 +175,14 @@ class capability( object ):
         p = P._cfg_shortest_path(self.__cfg)
 
 
-        for node, abstr in nx.get_node_attributes(self.__cfg.graph,'abstr').iteritems():
+        for node, abstr in nx.get_node_attributes(self.__cfg.graph,'abstr').items():
             addr = node.addr
 
             dbg_prnt(DBG_LVL_3, "Analyzing block at 0x%x (%d/%d)..." % (addr, counter, nnodes))
         
 
             if options & CAP_REGSET:
-                for reg, data in abstr['regwr'].iteritems():
+                for reg, data in abstr['regwr'].items():
 
                     if data['type'] == 'concrete':
                         self.__add(addr, ty='regset', reg=reg, val=data['const'], mode='const',
@@ -193,13 +193,13 @@ class capability( object ):
           
 
             if options & CAP_REGMOD:
-                for reg, data in abstr['regwr'].iteritems():
+                for reg, data in abstr['regwr'].items():
                     if data['type'] == 'mod':                                               
                         self.__add(addr, ty='regmod', reg=reg, op=data['op'], val=data['const'])
 
 
             if options & CAP_MEMRD:
-                for reg, data in abstr['regwr'].iteritems():
+                for reg, data in abstr['regwr'].items():
                     if data['type'] == 'deref' and data['memrd']:
                         loadreg = data['deps'][0]
 
@@ -300,9 +300,10 @@ class capability( object ):
 
         dbg_prnt(DBG_LVL_1, "Building the Capability Graph...")
 
+        helper = self.__cap
 
         # list of node addresses
-        node_list = [ d['addr'] for _, d in self.__cap.nodes_iter(data=True) ]    
+        node_list = [ d['addr'] for _, d in self.__cap.nodes(data=True) ]    
         SPT       = nx.DiGraph()                    # create the Shortest Path Tree
         completed = 0                               # % completed
 
@@ -312,7 +313,7 @@ class capability( object ):
         warn("This can be a very slow process ('-dd' and '-ddd' options show a progress bar)")
 
         # for each node u_ in Capability Graph
-        for u_, du in self.__cap.nodes_iter(data=True):            
+        for u_, du in self.__cap.nodes(data=True):            
             v_ = -1                                 # v_ is the uid of the target node (u_ -> v_)            
 
             SPT.clear()                             # clear Shortest Path Tree
@@ -351,16 +352,16 @@ class capability( object ):
                 SPT.add_nodes_from([path[0], path[-1]], color='Black')
 
                 # keep track of the statement uids that use this node (map address to UID)
-                SPT.node[path[0] ].setdefault('uid', set()).add(u_)
-                SPT.node[path[-1]].setdefault('uid', set()).add(v_)
+                SPT.nodes[path[0] ].setdefault('uid', set()).add(u_)
+                SPT.nodes[path[-1]].setdefault('uid', set()).add(v_)
 
                 # convert nodes [1,2,3,4], into edges [(1,2),(2,3),(3,4)] and add them to SPT
                 SPT.add_edges_from(zip(path, path[1:]), weight=1)
 
                 # color the intermediate nodes White (if they're not Black)
                 for p in path[1:-1]:
-                    if 'color' not in SPT.node[p] or SPT.node[p]['color'] != 'Black':
-                         SPT.node[p]['color'] = 'White'
+                    if 'color' not in SPT.nodes[p] or SPT.nodes[p]['color'] != 'Black':
+                         SPT.nodes[p]['color'] = 'White'
 
 
             # iteratively delete the White nodes
@@ -377,12 +378,11 @@ class capability( object ):
 
 
             ''' at this point, SPT will only contain Black nodes '''
-
             # merge SPT to the capability graph
-            for e1, e2, data in SPT.edges_iter(data=True):
+            for e1, e2, data in SPT.edges(data=True):
                 # copy it edge-by-edge
-                for u in SPT.node[e1]['uid']:       # move from addresses back to UIDs
-                    for v in SPT.node[e2]['uid']:   
+                for u in SPT.nodes[e1]['uid']:       # move from addresses back to UIDs
+                    for v in SPT.nodes[e2]['uid']:   
                         if u != v:                  # that's to avoid self-loops
                             self.__cap.add_edge(u, v, weight=data['weight'])
                             
@@ -411,7 +411,7 @@ class capability( object ):
                 nx.write_gpickle(self.__cap, self.__name + '.cap')
                 dbg_prnt(DBG_LVL_1, "Done. Capability Graph saved as %s" % self.__name + '.cap')
 
-            except IOError, err:
+            except IOError as err:
                 error("Cannot save Capability Graph: %s" % str(err))
 
 
@@ -481,7 +481,7 @@ class capability( object ):
            
             dbg_prnt(DBG_LVL_1, "Done. Capability Graph saved as %s" % self.__name + '.stmt')
 
-        except IOError, err:
+        except IOError as err:
             error("Cannot create statements file: %s" % str(err))
 
 
@@ -518,7 +518,7 @@ class capability( object ):
                 unvisited.remove(u)                 # mark u as visited
                 nodeset.append(u)                   # and add it to node set
 
-                self.__cap.node[ u ]['island'] = n_inslands
+                self.__cap.nodes[ u ]['island'] = n_inslands
             
 
             # get island as induced (directed) subgraph and relabel nodes in [0, order(G)-1] range
@@ -599,7 +599,7 @@ class capability( object ):
                 for island in self.__islands:       # perform the analysis to every island
                     func( island['graph'] )
 
-            except KeyError, err:
+            except KeyError as err:
                 fatal('Unknow analysis %s' % str(err))
 
 
@@ -642,7 +642,7 @@ class capability( object ):
 
                 func( self.__islands[ island_id ]['graph'] )
 
-            except KeyError, err:
+            except KeyError as err:
                 fatal('Unknow analysis %s' % str(err))
 
 
@@ -695,7 +695,7 @@ class capability( object ):
         for i in range(island.order()):             # initialize for K = 0
             C[0][i][i] = 1
         
-        for i,j, d in island.edges_iter(data=True): # initialize for K = 1
+        for i,j, d in island.edges(data=True): # initialize for K = 1
             C[1][i][j] = 1
         
         for k in range(2, K):                       # main loop
@@ -756,7 +756,7 @@ class capability( object ):
         for i in range(island.order()):             # initialize for K = 0
             M[0][i][i] = 0
         
-        for i,j, d in island.edges_iter(data=True): # initialize for K = 1
+        for i,j, d in island.edges(data=True): # initialize for K = 1
             M[1][i][j] = d['weight']
         
         for k in range(2, K):                       # main loop

@@ -126,13 +126,13 @@ def pretty_list( uglylist, delimiter=' - '):
     pretty = ''                                     # the final string
 
     for elt in uglylist:
-        if isinstance(elt, int) or isinstance(elt, long):
+        if isinstance(elt, int):
             pretty += delimiter + '%x' % elt
 
         elif isinstance(elt, str):
             pretty += delimiter + elt
 
-        elif isinstance(elt, angr.analyses.cfg.cfg_node.CFGNode):
+        elif isinstance(elt, angr.analyses.cfg.CFGNode):
             pretty += delimiter + '%x' % elt.addr
 
         else:
@@ -178,7 +178,7 @@ def to_edges( path, direction='forward' ):
 def mk_reverse_adj( adj ):        
         radj = { }
 
-        for a, b in adj.iteritems():
+        for a, b in adj.items():
             for c in b:
                 radj.setdefault(c, []).append(a)
 
@@ -240,7 +240,7 @@ def now():
 #
 def dbg_prnt( lvl, msg, pre='[+] ' ):
     if dbg_lvl >= lvl:                              # print only if you're in the right level
-        print now(), pre + msg
+        print(now(), pre + msg)
 
 
 
@@ -255,7 +255,7 @@ def dbg_prnt( lvl, msg, pre='[+] ' ):
 #
 def dbg_arb( lvl, msg, arb, pre='[+] ' ):
     if dbg_lvl >= lvl:                              # print only if you're in the right level
-        print now(), pre + msg, arb
+        print(now(), pre + msg, arb)
     
 
 
@@ -282,7 +282,7 @@ def func_name ( addr ):
 # :Ret: None.
 #
 def fatal( err ):
-    print '\033[91m%s [FATAL]' % now(), err + '.\033[0m'
+    print('\033[91m%s [FATAL]' % now(), err + '.\033[0m')
     exit( RETURN_FAILURE )
 
 
@@ -295,7 +295,7 @@ def fatal( err ):
 # :Ret: None.
 #
 def error( err ):
-    print '\033[91m%s [ERROR]' % now(), err + '.\033[0m'
+    print('\033[91m%s [ERROR]' % now(), err + '.\033[0m')
     
 
 
@@ -307,7 +307,7 @@ def error( err ):
 #
 def warn( warn, lvl=DBG_LVL_0 ):
     if dbg_lvl >= lvl:                              # print only if you're in the right level
-        print  '\033[93m%s [WARNING]' % now(),  warn + '.\033[0m'
+        print('\033[93m%s [WARNING]' % now(),  warn + '.\033[0m')
     
 
 
@@ -322,7 +322,7 @@ def warn( warn, lvl=DBG_LVL_0 ):
 def emph( msg, lvl=DBG_LVL_0 , pre='[*] '):
     # default mode is to print always
     if dbg_lvl >= lvl:                              # print only if you're in the right level
-        print  '\033[0;32m%s' % now(), pre + msg + '\033[0m'
+        print('\033[0;32m%s' % now(), pre + msg + '\033[0m')
 
 
 
@@ -429,7 +429,7 @@ class _node_colors( object ):
     #
     #
     def __iter__( self ):
-        for node, color in self.__colormap.iteritems():
+        for node, color in self.__colormap.items():
             yield (node, color)
 
     # ---------------------------------------------------------------------------------------------
@@ -558,7 +558,7 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
             # nodes['yellow' ] = get_nodes('cand')
             # (<CFGNode frame_dummy+0x1f 0x40078fL[6]>, [(14, [...]), (16, [...])]),
 
-            for node, attr in nx.get_node_attributes(graph, 'cand').iteritems():
+            for node, attr in nx.get_node_attributes(graph, 'cand').items():
 
                 if func and node.addr not in func.block_addrs:
                     continue
@@ -577,7 +577,7 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
             # (<CFGNode main+0x141 0x4009c6L[17]>, [14])
             # print [(n,s) for n, s in get_attr('acc')]
            
-            for node, attr in nx.get_node_attributes(graph, 'acc').iteritems():
+            for node, attr in nx.get_node_attributes(graph, 'acc').items():
                 if func and node.addr not in func.block_addrs:
                     continue
 
@@ -596,7 +596,7 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
             # (<CFGNode _init 0x4005d0[16]>, set([16, 14])),
             # print [(n,s) for n, s in get_attr('clob')]
 
-            for node, attr in nx.get_node_attributes(graph, 'clob').iteritems():
+            for node, attr in nx.get_node_attributes(graph, 'clob').items():
 
                 if func and node.addr not in func.block_addrs:
                     continue
@@ -691,12 +691,12 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
         # G.node('6-999999', color='transparent', fontcolor='transparent')
 
         for node in graph.nodes():
-            print node, graph.in_degree(node), graph.out_degree(node)
+            print(node, graph.in_degree(node), graph.out_degree(node))
             uid, addr = node
 
             # skip some nodes from the first layer (too many)
             if uid == 2 and addr not in whitelist:
-                print '\tDROP!'
+                print('\tDROP!')
                 continue
 
             with G.subgraph(name='cluster_%d' % uid) as c:
@@ -733,7 +733,7 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
         dbg_arb(DBG_LVL_2, "Path Edges:", path_edges)
 
         for u, v, w  in graph.edges(data=True):
-            print 'Edge', u, ' -> ', v
+            print('Edge', u, ' -> ', v)
             
             if (u, v) in path_edges:
                 G.edge('%d-%x' % u, '%d-%x' % v, label=('%d' % w['weight']) if v[0] != 16 else '0',
@@ -771,7 +771,7 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
         # TODO: 1. Elaborate on call, etc.
         #       2. No edge with weigth=0 on stmt on the same addr
 
-        get_attr  = lambda attr  : nx.get_node_attributes(graph, attr).iteritems()
+        get_attr  = lambda attr  : nx.get_node_attributes(graph, attr).items()
         get_nodes = lambda blkty : set([n.addr for n, _ in get_attr(blkty)])
         get_stmt  = lambda stmt  : set([n for n, s in get_attr('type') if s == stmt])
 
@@ -799,7 +799,7 @@ def visualize( graph, gtype='', options=VO_NONE, entry=-1, filename=None, paths=
     try:
         G.save(filename + '.dot')
         G.render(filename, view=True)
-    except IOError, err:
+    except IOError as err:
         error("Cannot save figure: %s" % str(err))
         return False                            # failure
 

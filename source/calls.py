@@ -142,7 +142,7 @@ call_groups__ = [
 #       is returned.
 #
 def find_syscall( name ):
-    call = filter(lambda call: call[0] == name, syscalls__)
+    call = list(filter(lambda call: call[0] == name, syscalls__))
 
     if len(call) == 0:
         return None
@@ -163,7 +163,7 @@ def find_syscall( name ):
 #       is returned.
 #
 def find_libcall( name ):
-    call = filter(lambda call: call[0] == name, libcalls__)
+    call = list(filter(lambda call: call[0] == name, libcalls__))
 
     if len(call) == 0:
         return None

@@ -52,7 +52,8 @@ import networkx as nx
 import queue
 import heapq
 import traceback
-
+import IPython
+from functools import total_ordering
 
 # ------------------------------------------------------------------------------------------------
 # Constant Definitions
@@ -65,6 +66,7 @@ _SINK_NODE   = 0                                    # the sink node in delta gra
 # -------------------------------------------------------------------------------------------------
 # _queue_obj: This class is the wrapper object that is used in the priority queue.
 #
+@total_ordering
 class _queue_obj( object ):
     ''' ======================================================================================= '''
     '''                                     CLASS INTERFACE                                     '''
@@ -90,6 +92,11 @@ class _queue_obj( object ):
     #
     def __cmp__( self, other ):
         return cmp(self.weight, other.weight)
+
+    def __lt__( self, other ):
+        return self.weight < other.weight
+    def __eq__( self, other ):
+        return self.weight == other.weight
 
 
 
@@ -748,12 +755,12 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
 
 
         # if root is clobbering skip it (function is recursive, root may not be the top node)
-        if 'clobbering' in self.__G.node[ root ]:
+        if 'clobbering' in self.__G.nodes[ root ]:
                 return [(INFINITY, [])]*len(finals), [(INFINITY, [])]*len(finals)
 
         # if root node must be avoided (in the current context), or if it's already in the
         # Call Stack, return non-existing path(s).
-        if 'avoid' in self.__G.node[root] and precall_stack == self.__G.node[root]['avoid'] or \
+        if 'avoid' in self.__G.nodes[root] and precall_stack == self.__G.nodes[root]['avoid'] or \
             root in self.__callstack:
                 return [(INFINITY, [])]*len(finals), [(INFINITY, [])]*len(finals)
 
@@ -808,11 +815,11 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
                 if isinstance(v, tuple) and v[1] == 'caller':
 
                     # ignore clobbering nodes
-                    if 'clobbering' in self.__G.node[ v[0] ]:
+                    if 'clobbering' in self.__G.nodes[ v[0] ]:
                             continue
 
                     # ignore nodes and edges that marked as "avoid"                
-                    if 'avoid' in self.__G.node[v[0]] and precall_stack == self.__G.node[v[0]]['avoid'] or \
+                    if 'avoid' in self.__G.nodes[v[0]] and precall_stack == self.__G.nodes[v[0]]['avoid'] or \
                        'avoid' in self.__G[u][v[0]]   and precall_stack == self.__G[u][v[0]]['avoid']:
                             continue
 
@@ -893,7 +900,7 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
                         continue
 
                     # v[2] may also be clobbering
-                    if 'clobbering' in self.__G.node[ v[2] ]:
+                    if 'clobbering' in self.__G.nodes[ v[2] ]:
                             continue
 
                     if altd < self.__dist[v[2]]:    # if alternative path is shorter, ute it
@@ -946,11 +953,11 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
                 # -----------------------------------------------------------------------
                 else:       
                     # if node is clobbering skip it
-                    if 'clobbering' in self.__G.node[v]:
+                    if 'clobbering' in self.__G.nodes[v]:
                             continue
 
                     # ignore nodes and edges that marked as "avoid"
-                    if 'avoid' in self.__G.node[v] and precall_stack == self.__G.node[v]['avoid'] or \
+                    if 'avoid' in self.__G.nodes[v] and precall_stack == self.__G.nodes[v]['avoid'] or \
                        'avoid' in self.__G[u][v]   and precall_stack == self.__G[u][v]['avoid']:
                             continue
 
@@ -998,8 +1005,7 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
 
                 dbg_prnt(DBG_LVL_4, "\tExtracting (reverse) path from 0x%x to 0x%x" %  
                                             (n.addr, root.addr))
-        
-                while p > 0:                        # go all the way up to the root                        
+                while p:                            # go all the way up to the root
                     dbg_prnt(DBG_LVL_4, "\t\t%3d 0x%x (%s)" % (self.__dist.get(p, -1), p.addr, p.name))                 
 
 
@@ -1012,8 +1018,9 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
                     if p in path:                   # cycles will make loop infinite
                         fatal('Backpointers contain a loop. Abort')
 
-                    p = self.__backpointer.get(p, -1)
-
+                    p = self.__backpointer.get(p, None)
+                    if isinstance(p, int) and p < 0:
+                        p = None
                   
                 # if final node is not visited or root is not found, set distance to -1                
                 if not found:
@@ -1065,14 +1072,14 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
         #   nonclob = [root.addr] + [final.addr for final in finals]
 
         # exclude clobbering blocks from search (mark them so they can be avoided)
-        for addr, uidlist in self.__clobbering.iteritems():            
+        for addr, uidlist in self.__clobbering.items():            
             # if addr not in nonclob and not disjoint(set(uidlist), clobs):
             if not disjoint(set(uidlist), clobs):
-                self.__G.node[ ADDR2NODE[addr] ]['clobbering'] = 1
+                self.__G.nodes[ ADDR2NODE[addr] ]['clobbering'] = 1
                
         
         # initialize all node distances to INF
-        for vtx, _ in self.__G.nodes_iter(data=True):
+        for vtx, _ in self.__G.nodes(data=True):
             self.__dist[vtx]        = INFINITY
             self.__backpointer[vtx] = -1
 
@@ -1080,7 +1087,7 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
         try:
             # get shortest paths to all final nodes (ignore the return nodes)
             paths, _ = self.__dijkstra_variant_rcsv(root, finals, precall_stack=precall_stack)
-        except Exception, e:                        # just in case that something goes wrong                       
+        except Exception as e:                        # just in case that something goes wrong                       
             traceback.print_exc()                   # print exception trace
             fatal('Unexpected exception in __dijkstra_variant_rcsv(): %s' % str(e))
 
@@ -1088,7 +1095,7 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
         # print function depths (DBG_LVL_4 only)        
         dbg_prnt(DBG_LVL_4, '\tFunction Depths:')
 
-        for func, (depth, path) in self.__funcdepth.iteritems():
+        for func, (depth, path) in self.__funcdepth.items():
             dbg_prnt(DBG_LVL_4, '%32s: %2d (%s)' % (func.name, depth, pretty_list(path)))
 
 
@@ -1105,7 +1112,7 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
 
         # clean up clobbering nodes
         for node, _ in nx.get_node_attributes(self.__G, 'clobbering').items(): 
-            del self.__G.node[ node ]['clobbering']                  
+            del self.__G.nodes[ node ]['clobbering']                  
 
 
         return paths                                # return shortest paths (1 for each final node)
@@ -1267,7 +1274,7 @@ class _cfg_shortest_path( _cs_ksp_intrl ):
         self.__radj = mk_reverse_adj(adj)           # build the reverse adjacency list
 
         # build a suitable dictionary with clobbering blocks
-        for uid, addrs in clobbering.iteritems():
+        for uid, addrs in clobbering.items():
             for addr in addrs:
                 self.__clobbering.setdefault(addr, []).append(uid)
        

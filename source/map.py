@@ -45,7 +45,7 @@
 from coreutils import *
 
 import networkx as nx
-import __builtin__                                  # to use the built-in map()
+# import __builtin__                                  # to use the built-in map()
 import copy
 import re
 

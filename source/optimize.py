@@ -428,7 +428,7 @@ class optimize( C.compile ):
                                 if len(val) != 8:
                                     for i in range(0, len(val), 8):
                                         opt += 'num %s ' % val[i:i+8].encode("hex")
-                                        print val[i:i+8],val[i:i+8].encode("hex")
+                                        print(val[i:i+8],val[i:i+8].encode("hex"))
                                 else:
                                     opt += 'num %s ' % val.encode("hex")
                     # -------------------------------------------------------------------
@@ -478,7 +478,7 @@ class optimize( C.compile ):
            
             dbg_prnt(DBG_LVL_1, "Done. SPL IR saved as %s" % filename + '.ir')
 
-        except IOError, err:
+        except IOError as err:
             fatal("Cannot create file: %s" % str(err))    
 
 # -------------------------------------------------------------------------------------------------

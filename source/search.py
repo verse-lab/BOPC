@@ -254,7 +254,7 @@ class search:
     #
     def __enum_tree( self, tree, simulation, path=[], prev_uid=-1, totpath=set()  ):
 
-        print 'TREE', tree
+        print('TREE', tree)
         #return 0
 
 
@@ -330,8 +330,8 @@ class search:
             #
             # So, in case of a gap, just throw an exception
  
-            print uid, self.__IR[uid], tree[0], self.__adj
-            print 'PATH', path, [p[2] for p in path] #, self.__adj[ uid ][0]
+            print(uid, self.__IR[uid], tree[0], self.__adj)
+            print('PATH', path, [p[2] for p in path]) #, self.__adj[ uid ][0]
 
             # if currb == nextb: step() && simu_edge(step().addr, nextb) (to go back)
             loopback = False
@@ -402,7 +402,7 @@ class search:
             X = self.__enum_tree(tree[0][0], simulation,  path, prev_uid, totpath)
 
             warn('------------------------------- SECOND ---------------------------')
-            print simulation_2.constraints()
+            print(simulation_2.constraints())
 
             if X < 0 or \
                self.__enum_tree(tree[0][1], simulation_2, path, prev_uid, totpath) < 0:
@@ -434,7 +434,7 @@ class search:
         dbg_prnt(DBG_LVL_1, 'Checking whether stashes are consistent ...')
 
         for simu in self.__simstash:
-            print 'Simulation', simu, simu.constraints()
+            print('Simulation', simu, simu.constraints())
 
             # ispo: you're fixed ;)
             # error('__consistent_stashes says: fix me ispo!!!!!')
@@ -499,11 +499,11 @@ class search:
                         return False
 
         for a, b in sim_a.mem.iteritems():
-            print 'MEM A', hex(a), b
+            print('MEM A', hex(a), b)
 
-        print '---------------------------------------------------------'
+        print('---------------------------------------------------------')
         for a, b in sim_b.mem.iteritems():
-            print 'MEM B', hex(a), b
+            print('MEM B', hex(a), b)
 
         # Assume they're ok for now...
         return True
@@ -756,7 +756,7 @@ class search:
                     # create the simulation object
                     simulation = S.simulate(self.__proj, self.__cfg, cloblks, adj, self.__IR,
                                             regmap, varmap, rsvp, entry)
-                except Exception, e:
+                except Exception as e:
                     dbg_prnt(DBG_LVL_2, "Cannot create simulation object. Discard current Hk")
                     continue
 
@@ -799,13 +799,13 @@ class search:
                     #           paths=self.__total_path)
                     # exit()
 
-                    print rainbow(textwrap.dedent('''\n\n
+                    print(rainbow(textwrap.dedent('''\n\n
                             $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $
                             $                                                                     $
                             $                 *** S O L U T I O N   F O U N D ***                 $
                             $                                                                     $
                             $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $
-                            '''))
+                            ''')))
 
 
                     emph(bolds('Solution #%d' % self.__nsolutions))
